@@ -1,0 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Core System Tables
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  email             String    @unique
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  password          String
+  roleId            Int       @map("role_id")
+  memberId          Int?      @unique @map("member_id")
+  rememberToken     String?   @map("remember_token")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  role         Role          @relation(fields: [roleId], references: [id])
+  member       Member?       @relation(fields: [memberId], references: [id])
+  newsArticles NewsArticle[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  email     String   @id
+  token     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
+}
+
+// Membership and Community Tables
+model MembershipType {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  members Member[]
+
+  @@map("membership_types")
+}
+
+model Member {
+  id                 Int       @id @default(autoincrement())
+  firstName          String    @map("first_name")
+  lastName           String    @map("last_name")
+  fatherName         String    @map("father_name")
+  nativePlace        String    @map("native_place")
+  dob                DateTime
+  gender             String
+  address            String
+  city               String
+  pincode            String
+  phonePrimary       String    @unique @map("phone_primary")
+  phoneSecondary     String?   @map("phone_secondary")
+  email              String?   @unique
+  businessName       String?   @map("business_name")
+  businessCategory   String?   @map("business_category")
+  profileImageUrl    String?   @map("profile_image_url")
+  membershipTypeId   Int       @map("membership_type_id")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  
+  membershipType       MembershipType       @relation(fields: [membershipTypeId], references: [id])
+  user                 User?
+  committeeMembers     CommitteeMember[]
+  matrimonialProfiles  MatrimonialProfile[]
+
+  @@map("members")
+}
+
+model Committee {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  sessionYear String   @map("session_year")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  committeeMembers CommitteeMember[]
+
+  @@map("committees")
+}
+
+model CommitteeMember {
+  id           Int    @id @default(autoincrement())
+  committeeId  Int    @map("committee_id")
+  memberId     Int    @map("member_id")
+  designation  String
+  
+  committee Committee @relation(fields: [committeeId], references: [id], onDelete: Cascade)
+  member    Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([committeeId, memberId], name: "committee_member_unique")
+  @@map("committee_members")
+}
+
+// Content Management Tables
+model NewsArticle {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  content     String
+  imageUrl    String?   @map("image_url")
+  authorId    Int       @map("author_id")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  author User @relation(fields: [authorId], references: [id])
+
+  @@map("news_articles")
+}
+
+model Event {
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  venue         String
+  startDatetime DateTime  @map("start_datetime")
+  endDatetime   DateTime? @map("end_datetime")
+  imageUrl      String?   @map("image_url")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  galleryAlbums GalleryAlbum[]
+
+  @@map("events")
+}
+
+model GalleryAlbum {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  coverImageUrl   String   @map("cover_image_url")
+  eventId         Int?     @map("event_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  event   Event?         @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  photos  GalleryPhoto[]
+
+  @@map("gallery_albums")
+}
+
+model GalleryPhoto {
+  id        Int      @id @default(autoincrement())
+  albumId   Int      @map("album_id")
+  imageUrl  String   @map("image_url")
+  caption   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  album GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@map("gallery_photos")
+}
+
+model Download {
+  id          Int      @id @default(autoincrement())
+  title       String
+  filePath    String   @map("file_path")
+  fileType    String   @map("file_type")
+  description String?
+  uploadDate  DateTime @map("upload_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("downloads")
+}
+
+// Matrimonial Feature Table
+model MatrimonialProfile {
+  id                  Int                      @id @default(autoincrement())
+  memberId            Int                      @map("member_id")
+  profileFor          String                   @map("profile_for")
+  bio                 String
+  dob                 DateTime
+  heightCm            Int                      @map("height_cm")
+  maritalStatus       String                   @map("marital_status")
+  educationLevel      String                   @map("education_level")
+  educationDetails    String?                  @map("education_details")
+  occupation          String
+  annualIncome        String?                  @map("annual_income")
+  dietaryHabits       String?                  @map("dietary_habits")
+  horoscopeDetails    String?                  @map("horoscope_details")
+  familyDetails       String?                  @map("family_details")
+  partnerExpectations String?                  @map("partner_expectations")
+  contactPersonName   String                   @map("contact_person_name")
+  contactPersonRelation String                @map("contact_person_relation")
+  contactNumber       String                   @map("contact_number")
+  profileVisibility   String                   @default("Matrimonial Members Only") @map("profile_visibility")
+  isApproved          Boolean                  @default(false) @map("is_approved")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+  
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@map("matrimonial_profiles")
+}

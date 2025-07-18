@@ -1,103 +1,244 @@
-import Image from "next/image";
+import Link from "next/link"
+import { Calendar, Users, FileText, Camera } from "lucide-react"
+import { prisma } from "@/lib/prisma"
 
-export default function Home() {
+async function getLatestNews() {
+  try {
+    return await prisma.newsArticle.findMany({
+      where: { publishedAt: { not: null } },
+      orderBy: { publishedAt: 'desc' },
+      take: 3,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        publishedAt: true,
+        imageUrl: true
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching news:', error)
+    return []
+  }
+}
+
+async function getUpcomingEvents() {
+  try {
+    return await prisma.event.findMany({
+      where: { startDatetime: { gte: new Date() } },
+      orderBy: { startDatetime: 'asc' },
+      take: 3,
+      select: {
+        id: true,
+        title: true,
+        startDatetime: true,
+        venue: true
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching events:', error)
+    return []
+  }
+}
+
+export default async function Home() {
+  const [latestNews, upcomingEvents] = await Promise.all([
+    getLatestNews(),
+    getUpcomingEvents()
+  ])
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="bg-white">
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-orange-50 to-orange-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+              Welcome to
+              <span className="text-orange-600"> Bilaspur Agrawal Sabha</span>
+            </h1>
+            <p className="mt-6 text-lg leading-8 text-gray-600 max-w-3xl mx-auto">
+              A unified digital platform serving the Agarwal community of Bilaspur. 
+              Connecting hearts, celebrating our rich heritage, and building a stronger community together.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <Link
+                href="/members"
+                className="rounded-md bg-orange-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-orange-500 transition-colors"
+              >
+                Explore Members
+              </Link>
+              <Link href="/about-us" className="text-base font-semibold leading-6 text-gray-900">
+                Learn more <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col items-center text-center">
+              <div className="rounded-full bg-orange-100 p-4">
+                <Users className="h-8 w-8 text-orange-600" />
+              </div>
+              <dt className="mt-4 text-lg font-medium text-gray-900">Community Members</dt>
+              <dd className="mt-2 text-3xl font-bold text-orange-600">500+</dd>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="rounded-full bg-orange-100 p-4">
+                <Calendar className="h-8 w-8 text-orange-600" />
+              </div>
+              <dt className="mt-4 text-lg font-medium text-gray-900">Annual Events</dt>
+              <dd className="mt-2 text-3xl font-bold text-orange-600">12+</dd>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="rounded-full bg-orange-100 p-4">
+                <FileText className="h-8 w-8 text-orange-600" />
+              </div>
+              <dt className="mt-4 text-lg font-medium text-gray-900">Years of Service</dt>
+              <dd className="mt-2 text-3xl font-bold text-orange-600">25+</dd>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <div className="rounded-full bg-orange-100 p-4">
+                <Camera className="h-8 w-8 text-orange-600" />
+              </div>
+              <dt className="mt-4 text-lg font-medium text-gray-900">Photo Albums</dt>
+              <dd className="mt-2 text-3xl font-bold text-orange-600">50+</dd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Latest News & Upcoming Events */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Latest News */}
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold text-gray-900">Latest News</h2>
+                <Link href="/news" className="text-orange-600 hover:text-orange-500 font-medium">
+                  View all →
+                </Link>
+              </div>
+              <div className="space-y-6">
+                {latestNews.map((article) => (
+                  <div key={article.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      <Link href={`/news/${article.slug}`} className="hover:text-orange-600">
+                        {article.title}
+                      </Link>
+                    </h3>
+                    <p className="text-gray-600 text-sm">
+                      {article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }) : 'Draft'}
+                    </p>
+                  </div>
+                ))}
+                {latestNews.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">No news articles available yet.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Upcoming Events */}
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold text-gray-900">Upcoming Events</h2>
+                <Link href="/events" className="text-orange-600 hover:text-orange-500 font-medium">
+                  View all →
+                </Link>
+              </div>
+              <div className="space-y-6">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      <Link href={`/events/${event.id}`} className="hover:text-orange-600">
+                        {event.title}
+                      </Link>
+                    </h3>
+                    <div className="text-gray-600 text-sm space-y-1">
+                      <p className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {new Date(event.startDatetime).toLocaleDateString('en-IN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <p>{event.venue}</p>
+                    </div>
+                  </div>
+                ))}
+                {upcomingEvents.length === 0 && (
+                  <p className="text-gray-500 text-center py-8">No upcoming events scheduled.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Community Features */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Community Features</h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Discover what our community platform has to offer
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
+                <Users className="h-8 w-8 text-orange-600" />
+              </div>
+              <h3 className="mt-6 text-xl font-medium text-gray-900">Member Directory</h3>
+              <p className="mt-2 text-gray-600">
+                Connect with community members, search by location, profession, and more.
+              </p>
+              <Link href="/members" className="mt-4 inline-block text-orange-600 hover:text-orange-500">
+                Explore Directory →
+              </Link>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
+                <Calendar className="h-8 w-8 text-orange-600" />
+              </div>
+              <h3 className="mt-6 text-xl font-medium text-gray-900">Events & Programs</h3>
+              <p className="mt-2 text-gray-600">
+                Stay updated with cultural events, community gatherings, and celebrations.
+              </p>
+              <Link href="/events" className="mt-4 inline-block text-orange-600 hover:text-orange-500">
+                View Events →
+              </Link>
+            </div>
+
+            <div className="text-center">
+              <div className="mx-auto h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
+                <Camera className="h-8 w-8 text-orange-600" />
+              </div>
+              <h3 className="mt-6 text-xl font-medium text-gray-900">Photo Gallery</h3>
+              <p className="mt-2 text-gray-600">
+                Browse through memories from past events and community celebrations.
+              </p>
+              <Link href="/gallery" className="mt-4 inline-block text-orange-600 hover:text-orange-500">
+                View Gallery →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
