@@ -107,8 +107,15 @@ async function main() {
   })
 
   // Create sample news article
-  await prisma.newsArticle.create({
-    data: {
+  await prisma.newsArticle.upsert({
+    where: { slug: 'welcome-to-bilaspur-agrawal-sabha-portal' },
+    update: {
+      title: 'Welcome to Bilaspur Agrawal Sabha Portal',
+      content: 'We are excited to launch our new community portal. This platform will serve as the central hub for all community activities, news, and member interactions. Members can now register online, view events, read news, and connect with the community digitally.',
+      authorId: adminUser.id,
+      publishedAt: new Date()
+    },
+    create: {
       title: 'Welcome to Bilaspur Agrawal Sabha Portal',
       slug: 'welcome-to-bilaspur-agrawal-sabha-portal',
       content: 'We are excited to launch our new community portal. This platform will serve as the central hub for all community activities, news, and member interactions. Members can now register online, view events, read news, and connect with the community digitally.',
@@ -118,8 +125,10 @@ async function main() {
   })
 
   // Create sample event
-  await prisma.event.create({
-    data: {
+  await prisma.event.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
       title: 'Agrasen Jayanti Celebration 2024',
       description: 'Annual celebration of Maharaja Agrasen Jayanti with cultural programs, community gathering, and traditional festivities. Join us for an evening of cultural performances, community bonding, and celebration of our heritage.',
       venue: 'Agrasen Bhawan, Bilaspur',
@@ -129,8 +138,10 @@ async function main() {
   })
 
   // Create another event
-  await prisma.event.create({
-    data: {
+  await prisma.event.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
       title: 'Annual General Meeting 2024',
       description: 'Annual General Meeting of Bilaspur Agrawal Sabha. All members are invited to participate in the important discussions about community development and upcoming initiatives.',
       venue: 'Community Hall, Bilaspur',
