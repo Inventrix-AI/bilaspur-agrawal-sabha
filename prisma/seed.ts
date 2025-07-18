@@ -153,8 +153,10 @@ async function main() {
   console.log('✅ Database seeding completed successfully!')
   console.log('📧 Admin login: admin@bilaspuragrawalsabha.com')
   console.log('🔑 Admin password: admin123')
+  console.log('👤 Admin user ID:', adminUser.id)
   console.log('📧 Sample member login: member@example.com')
   console.log('🔑 Sample member password: password123')
+  console.log('👤 Sample user ID:', sampleUser.id)
 }
 
 main()
