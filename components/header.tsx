@@ -9,7 +9,7 @@ const navigation = [
   { name: "Home", href: "/" },
   {
     name: "Agrawal Sabha",
-    href: "/about",
+    href: "/about-us",
     children: [
       { name: "About Us", href: "/about-us" },
       { name: "Patron Members", href: "/patron-members" },

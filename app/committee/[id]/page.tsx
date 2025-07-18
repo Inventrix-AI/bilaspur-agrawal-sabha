@@ -28,7 +28,7 @@ async function getCommittee(id: string) {
             }
           },
           orderBy: {
-            createdAt: 'asc'
+            id: 'asc'
           }
         }
       }

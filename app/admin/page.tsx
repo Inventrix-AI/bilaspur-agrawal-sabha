@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { Users, Calendar, FileText, Camera, Heart, CheckCircle } from "lucide-react"
+import { Users, Calendar, FileText, Camera, Heart, CheckCircle, Building } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 async function getDashboardStats() {
@@ -222,6 +222,14 @@ export default async function AdminDashboard() {
             >
               <Users className="h-8 w-8 text-blue-500 mb-2" />
               <span className="text-sm font-medium">Manage Members</span>
+            </a>
+            
+            <a
+              href="/admin/committees"
+              className="flex flex-col items-center p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Building className="h-8 w-8 text-orange-500 mb-2" />
+              <span className="text-sm font-medium">Manage Committees</span>
             </a>
             
             <a

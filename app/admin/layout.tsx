@@ -14,13 +14,15 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Building
 } from "lucide-react"
 import { useState } from "react"
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Members', href: '/admin/members', icon: Users },
+  { name: 'Committees', href: '/admin/committees', icon: Building },
   { name: 'Events', href: '/admin/events', icon: Calendar },
   { name: 'News', href: '/admin/news', icon: FileText },
   { name: 'Gallery', href: '/admin/gallery', icon: Camera },

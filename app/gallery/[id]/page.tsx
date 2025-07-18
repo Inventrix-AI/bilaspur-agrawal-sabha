@@ -29,8 +29,13 @@ async function getGalleryAlbum(id: string) {
   }
 }
 
-export default async function GalleryAlbumPage({ params }: { params: { id: string } }) {
-  const album = await getGalleryAlbum(params.id)
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function GalleryAlbumPage({ params }: PageProps) {
+  const { id } = await params
+  const album = await getGalleryAlbum(id)
 
   if (!album) {
     notFound()

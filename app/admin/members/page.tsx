@@ -490,7 +490,7 @@ export default function AdminMembersPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Membership Type</label>
-                <p className="text-sm text-gray-900">{selectedMember.membershipType.name}</p>
+                <p className="text-sm text-gray-900">{selectedMember.membershipType}</p>
               </div>
               {selectedMember.businessName && (
                 <>

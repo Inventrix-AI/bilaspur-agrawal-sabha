@@ -84,8 +84,12 @@ model Committee {
   name        String
   description String?
   sessionYear String   @map("session_year")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  committeeImageUrl String?  @map("committee_image_url")
+  posterImageUrl  String?  @map("poster_image_url")
+  isActive        Boolean  @default(true) @map("is_active")
+  displayOrder    Int      @default(0) @map("display_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
   
   committeeMembers CommitteeMember[]
 

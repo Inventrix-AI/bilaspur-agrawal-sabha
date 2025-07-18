@@ -47,8 +47,13 @@ async function getRelatedArticles(currentId: number) {
   }
 }
 
-export default async function NewsArticlePage({ params }: { params: { slug: string } }) {
-  const article = await getNewsArticle(params.slug)
+interface PageProps {
+  params: Promise<{ slug: string }>
+}
+
+export default async function NewsArticlePage({ params }: PageProps) {
+  const { slug } = await params
+  const article = await getNewsArticle(slug)
 
   if (!article || !article.publishedAt) {
     notFound()
