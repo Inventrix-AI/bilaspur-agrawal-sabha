@@ -5,19 +5,23 @@ export async function GET() {
   try {
     const members = await prisma.member.findMany({
       where: {
-        isActive: true
+        isActive: true,
+        isApproved: true // Only show approved members in public listing
       },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true,
+            phone: true
           }
         }
       },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' }
-      ]
+      orderBy: {
+        user: {
+          name: 'asc'
+        }
+      }
     })
 
     return NextResponse.json(members)

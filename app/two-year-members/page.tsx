@@ -6,21 +6,21 @@ async function getTwoYearMembers() {
     return await prisma.member.findMany({
       where: {
         isActive: true,
-        membershipType: {
-          name: '2-Year'
-        }
+        membershipType: '2-Year'
       },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true
           }
         }
       },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' }
-      ]
+      orderBy: {
+        user: {
+          name: 'asc'
+        }
+      }
     })
   } catch (error) {
     console.error('Error fetching 2-year members:', error)

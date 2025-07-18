@@ -6,21 +6,21 @@ async function getPatronMembers() {
     return await prisma.member.findMany({
       where: {
         isActive: true,
-        membershipType: {
-          name: 'Patron'
-        }
+        membershipType: 'Patron'
       },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true
           }
         }
       },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' }
-      ]
+      orderBy: {
+        user: {
+          name: 'asc'
+        }
+      }
     })
   } catch (error) {
     console.error('Error fetching patron members:', error)

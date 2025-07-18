@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { useSession, signOut } from "next-auth/react"
-import { Menu, X, LogOut, Settings } from "lucide-react"
+import { Menu, X, LogOut, Settings, User } from "lucide-react"
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -87,10 +87,18 @@ export default function Header() {
                 <span className="text-sm text-gray-700">
                   {session.user.name}
                 </span>
+                <Link
+                  href="/dashboard"
+                  className="text-gray-700 hover:text-orange-600 transition-colors"
+                  title="My Dashboard"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"
                     className="text-gray-700 hover:text-orange-600 transition-colors"
+                    title="Admin Panel"
                   >
                     <Settings className="h-5 w-5" />
                   </Link>
@@ -98,17 +106,26 @@ export default function Header() {
                 <button
                   onClick={() => signOut()}
                   className="text-gray-700 hover:text-orange-600 transition-colors"
+                  title="Logout"
                 >
                   <LogOut className="h-5 w-5" />
                 </button>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
-              >
-                Login
-              </Link>
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/register"
+                  className="text-orange-600 hover:text-orange-700 px-3 py-2 rounded-md font-medium transition-colors"
+                >
+                  Register
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
+                >
+                  Login
+                </Link>
+              </div>
             )}
           </div>
           <div className="lg:hidden">
@@ -161,6 +178,13 @@ export default function Header() {
                   <div className="text-sm text-gray-700 px-3 py-2">
                     {session.user.name}
                   </div>
+                  <Link
+                    href="/dashboard"
+                    className="block text-gray-700 hover:text-orange-600 px-3 py-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    My Dashboard
+                  </Link>
                   {isAdmin && (
                     <Link
                       href="/admin"
@@ -181,13 +205,22 @@ export default function Header() {
                   </button>
                 </div>
               ) : (
-                <Link
-                  href="/login"
-                  className="block bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600 transition-colors text-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
+                <div className="space-y-2">
+                  <Link
+                    href="/register"
+                    className="block text-orange-600 hover:text-orange-700 px-3 py-2 rounded-md font-medium transition-colors text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="block bg-orange-500 text-white px-3 py-2 rounded-md hover:bg-orange-600 transition-colors text-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                </div>
               )}
             </div>
           </div>

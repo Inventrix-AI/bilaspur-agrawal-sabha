@@ -18,7 +18,6 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        role: true,
         member: true
       }
     })
@@ -44,8 +43,8 @@ export async function POST(request: Request) {
       {
         userId: user.id,
         email: user.email,
-        role: user.role.name,
-        memberId: user.memberId
+        role: user.role,
+        memberId: user.member?.id
       },
       process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
@@ -57,8 +56,8 @@ export async function POST(request: Request) {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role.name,
-        memberId: user.memberId
+        role: user.role,
+        memberId: user.member?.id
       }
     })
   } catch (error) {

@@ -6,53 +6,6 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seeding...')
 
-  // Create roles
-  const superAdminRole = await prisma.role.upsert({
-    where: { name: 'Super Admin' },
-    update: {},
-    create: {
-      name: 'Super Admin',
-      description: 'Full access to all system features'
-    }
-  })
-
-  const committeeAdminRole = await prisma.role.upsert({
-    where: { name: 'Committee Admin' },
-    update: {},
-    create: {
-      name: 'Committee Admin',
-      description: 'Limited admin access for committee management'
-    }
-  })
-
-  const memberRole = await prisma.role.upsert({
-    where: { name: 'Member' },
-    update: {},
-    create: {
-      name: 'Member',
-      description: 'Regular community member access'
-    }
-  })
-
-  // Create membership types
-  const patronMembership = await prisma.membershipType.upsert({
-    where: { name: 'Patron' },
-    update: {},
-    create: { name: 'Patron' }
-  })
-
-  const lifetimeMembership = await prisma.membershipType.upsert({
-    where: { name: 'Lifetime' },
-    update: {},
-    create: { name: 'Lifetime' }
-  })
-
-  const twoYearMembership = await prisma.membershipType.upsert({
-    where: { name: '2-Year' },
-    update: {},
-    create: { name: '2-Year' }
-  })
-
   // Create a sample super admin user
   const hashedPassword = await bcrypt.hash('admin123', 12)
   
@@ -63,8 +16,27 @@ async function main() {
       name: 'System Administrator',
       email: 'admin@bilaspuragrawalsabha.com',
       password: hashedPassword,
-      roleId: superAdminRole.id,
-      emailVerifiedAt: new Date()
+      role: 'Super Admin',
+      status: 'Active',
+      isEmailVerified: true,
+      phone: '9876543210'
+    }
+  })
+
+  // Create member profile for admin
+  await prisma.member.upsert({
+    where: { userId: adminUser.id },
+    update: {},
+    create: {
+      userId: adminUser.id,
+      businessName: 'Administrator',
+      businessCategory: 'System Administration',
+      locality: 'Central Bilaspur',
+      gotra: 'Admin',
+      membershipType: 'Patron',
+      status: 'Active',
+      isApproved: true,
+      isActive: true
     }
   })
 
@@ -89,23 +61,48 @@ async function main() {
     }
   })
 
-  // Create sample member
-  const sampleMember = await prisma.member.create({
-    data: {
+  // Create sample regular user
+  const userPassword = await bcrypt.hash('password123', 12)
+  
+  const sampleUser = await prisma.user.upsert({
+    where: { email: 'member@example.com' },
+    update: {},
+    create: {
+      name: 'Sample Member',
+      email: 'member@example.com',
+      password: userPassword,
+      role: 'Member',
+      status: 'Active',
+      isEmailVerified: true,
+      phone: '9876543211'
+    }
+  })
+
+  // Create member profile for sample user
+  await prisma.member.upsert({
+    where: { userId: sampleUser.id },
+    update: {},
+    create: {
+      userId: sampleUser.id,
       firstName: 'Sample',
       lastName: 'Member',
       fatherName: 'Sample Father',
       nativePlace: 'Bilaspur',
-      dob: new Date('1980-01-01'),
+      dob: new Date('1985-01-15'),
       gender: 'Male',
       address: 'Sample Address, Bilaspur',
+      locality: 'Railway Colony',
       city: 'Bilaspur',
       pincode: '495001',
-      phonePrimary: '9876543210',
-      email: 'sample@example.com',
-      businessName: 'Sample Business',
+      phonePrimary: '9876543211',
+      email: 'member@example.com',
+      businessName: 'Sample Enterprises',
       businessCategory: 'Trading',
-      membershipTypeId: lifetimeMembership.id
+      gotra: 'Mittal',
+      membershipType: 'Lifetime',
+      status: 'Active',
+      isApproved: true,
+      isActive: true
     }
   })
 
@@ -114,7 +111,7 @@ async function main() {
     data: {
       title: 'Welcome to Bilaspur Agrawal Sabha Portal',
       slug: 'welcome-to-bilaspur-agrawal-sabha-portal',
-      content: 'We are excited to launch our new community portal. This platform will serve as the central hub for all community activities, news, and member interactions.',
+      content: 'We are excited to launch our new community portal. This platform will serve as the central hub for all community activities, news, and member interactions. Members can now register online, view events, read news, and connect with the community digitally.',
       authorId: adminUser.id,
       publishedAt: new Date()
     }
@@ -123,17 +120,30 @@ async function main() {
   // Create sample event
   await prisma.event.create({
     data: {
-      title: 'Agrasen Jayanti Celebration',
-      description: 'Annual celebration of Maharaja Agrasen Jayanti with cultural programs and community gathering.',
+      title: 'Agrasen Jayanti Celebration 2024',
+      description: 'Annual celebration of Maharaja Agrasen Jayanti with cultural programs, community gathering, and traditional festivities. Join us for an evening of cultural performances, community bonding, and celebration of our heritage.',
       venue: 'Agrasen Bhawan, Bilaspur',
       startDatetime: new Date('2024-09-17T18:00:00'),
       endDatetime: new Date('2024-09-17T21:00:00')
     }
   })
 
+  // Create another event
+  await prisma.event.create({
+    data: {
+      title: 'Annual General Meeting 2024',
+      description: 'Annual General Meeting of Bilaspur Agrawal Sabha. All members are invited to participate in the important discussions about community development and upcoming initiatives.',
+      venue: 'Community Hall, Bilaspur',
+      startDatetime: new Date('2024-12-15T17:00:00'),
+      endDatetime: new Date('2024-12-15T19:00:00')
+    }
+  })
+
   console.log('✅ Database seeding completed successfully!')
   console.log('📧 Admin login: admin@bilaspuragrawalsabha.com')
   console.log('🔑 Admin password: admin123')
+  console.log('📧 Sample member login: member@example.com')
+  console.log('🔑 Sample member password: password123')
 }
 
 main()

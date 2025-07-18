@@ -6,21 +6,21 @@ async function getLifetimeMembers() {
     return await prisma.member.findMany({
       where: {
         isActive: true,
-        membershipType: {
-          name: 'Lifetime'
-        }
+        membershipType: 'Lifetime'
       },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true
           }
         }
       },
-      orderBy: [
-        { firstName: 'asc' },
-        { lastName: 'asc' }
-      ]
+      orderBy: {
+        user: {
+          name: 'asc'
+        }
+      }
     })
   } catch (error) {
     console.error('Error fetching lifetime members:', error)
@@ -48,7 +48,7 @@ function MemberCard({ member }: { member: any }) {
         
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {member.firstName} {member.lastName}
+            {member.user?.name || `${member.firstName || ''} ${member.lastName || ''}`.trim()}
           </h3>
           
           <div className="space-y-1">

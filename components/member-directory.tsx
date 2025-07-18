@@ -9,18 +9,24 @@ import { Badge } from "@/components/ui/badge"
 
 interface Member {
   id: number
-  firstName: string
-  lastName: string
-  city: string
-  nativePlace: string
+  user: {
+    name: string
+    email: string
+    phone?: string
+  }
+  firstName?: string
+  lastName?: string
+  city?: string
+  locality?: string
+  nativePlace?: string
   businessName?: string
   businessCategory?: string
+  gotra?: string
   profileImageUrl?: string
-  phonePrimary: string
-  email?: string
-  membershipType: {
-    name: string
-  }
+  phonePrimary?: string
+  membershipType: string
+  status: string
+  isApproved: boolean
 }
 
 export default function MemberDirectory() {
@@ -28,13 +34,15 @@ export default function MemberDirectory() {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [cityFilter, setCityFilter] = useState("")
-  const [nativePlaceFilter, setNativePlaceFilter] = useState("")
+  const [localityFilter, setLocalityFilter] = useState("")
+  const [gotraFilter, setGotraFilter] = useState("")
   const [businessCategoryFilter, setBusinessCategoryFilter] = useState("")
   const [membershipTypeFilter, setMembershipTypeFilter] = useState("")
   const [loading, setLoading] = useState(true)
 
   const [cities, setCities] = useState<string[]>([])
-  const [nativePlaces, setNativePlaces] = useState<string[]>([])
+  const [localities, setLocalities] = useState<string[]>([])
+  const [gotras, setGotras] = useState<string[]>([])
   const [businessCategories, setBusinessCategories] = useState<string[]>([])
   const [membershipTypes, setMembershipTypes] = useState<string[]>([])
 
@@ -44,7 +52,7 @@ export default function MemberDirectory() {
 
   useEffect(() => {
     filterMembers()
-  }, [members, searchTerm, cityFilter, nativePlaceFilter, businessCategoryFilter, membershipTypeFilter])
+  }, [members, searchTerm, cityFilter, localityFilter, gotraFilter, businessCategoryFilter, membershipTypeFilter])
 
   const fetchMembers = async () => {
     try {
@@ -54,13 +62,15 @@ export default function MemberDirectory() {
         setMembers(data)
         
         // Extract unique values for filters
-        const uniqueCities = [...new Set(data.map((m: Member) => m.city))].filter(Boolean)
-        const uniqueNativePlaces = [...new Set(data.map((m: Member) => m.nativePlace))].filter(Boolean)
-        const uniqueBusinessCategories = [...new Set(data.map((m: Member) => m.businessCategory))].filter(Boolean)
-        const uniqueMembershipTypes = [...new Set(data.map((m: Member) => m.membershipType.name))].filter(Boolean)
+        const uniqueCities = [...new Set(data.map((m: Member) => m.city))].filter(Boolean) as string[]
+        const uniqueLocalities = [...new Set(data.map((m: Member) => m.locality))].filter(Boolean) as string[]
+        const uniqueGotras = [...new Set(data.map((m: Member) => m.gotra))].filter(Boolean) as string[]
+        const uniqueBusinessCategories = [...new Set(data.map((m: Member) => m.businessCategory))].filter(Boolean) as string[]
+        const uniqueMembershipTypes = [...new Set(data.map((m: Member) => m.membershipType))].filter(Boolean) as string[]
         
         setCities(uniqueCities)
-        setNativePlaces(uniqueNativePlaces)
+        setLocalities(uniqueLocalities)
+        setGotras(uniqueGotras)
         setBusinessCategories(uniqueBusinessCategories)
         setMembershipTypes(uniqueMembershipTypes)
       }
@@ -77,8 +87,9 @@ export default function MemberDirectory() {
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(member =>
-        `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (member.businessName && member.businessName.toLowerCase().includes(searchTerm.toLowerCase()))
+        member.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (member.businessName && member.businessName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (member.gotra && member.gotra.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     }
 
@@ -87,9 +98,14 @@ export default function MemberDirectory() {
       filtered = filtered.filter(member => member.city === cityFilter)
     }
 
-    // Native place filter
-    if (nativePlaceFilter) {
-      filtered = filtered.filter(member => member.nativePlace === nativePlaceFilter)
+    // Locality filter
+    if (localityFilter) {
+      filtered = filtered.filter(member => member.locality === localityFilter)
+    }
+
+    // Gotra filter
+    if (gotraFilter) {
+      filtered = filtered.filter(member => member.gotra === gotraFilter)
     }
 
     // Business category filter
@@ -99,7 +115,7 @@ export default function MemberDirectory() {
 
     // Membership type filter
     if (membershipTypeFilter) {
-      filtered = filtered.filter(member => member.membershipType.name === membershipTypeFilter)
+      filtered = filtered.filter(member => member.membershipType === membershipTypeFilter)
     }
 
     setFilteredMembers(filtered)
@@ -108,7 +124,8 @@ export default function MemberDirectory() {
   const clearFilters = () => {
     setSearchTerm("")
     setCityFilter("")
-    setNativePlaceFilter("")
+    setLocalityFilter("")
+    setGotraFilter("")
     setBusinessCategoryFilter("")
     setMembershipTypeFilter("")
   }
@@ -139,7 +156,7 @@ export default function MemberDirectory() {
           </div>
 
           {/* Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
               <select
@@ -155,15 +172,29 @@ export default function MemberDirectory() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Native Place</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Locality</label>
               <select
-                value={nativePlaceFilter}
-                onChange={(e) => setNativePlaceFilter(e.target.value)}
+                value={localityFilter}
+                onChange={(e) => setLocalityFilter(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
-                <option value="">All Native Places</option>
-                {nativePlaces.map(place => (
-                  <option key={place} value={place}>{place}</option>
+                <option value="">All Localities</option>
+                {localities.map(locality => (
+                  <option key={locality} value={locality}>{locality}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gotra</label>
+              <select
+                value={gotraFilter}
+                onChange={(e) => setGotraFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">All Gotras</option>
+                {gotras.map(gotra => (
+                  <option key={gotra} value={gotra}>{gotra}</option>
                 ))}
               </select>
             </div>
@@ -232,7 +263,7 @@ export default function MemberDirectory() {
                       <img
                         className="h-16 w-16 rounded-full object-cover"
                         src={member.profileImageUrl}
-                        alt={`${member.firstName} ${member.lastName}`}
+                        alt={member.user.name}
                       />
                     ) : (
                       <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
@@ -243,14 +274,23 @@ export default function MemberDirectory() {
                   
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {member.firstName} {member.lastName}
+                      {member.user.name}
                     </h3>
                     
                     <div className="mt-2 space-y-1">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                        {member.city}
-                      </div>
+                      {member.city && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                          {member.locality ? `${member.locality}, ${member.city}` : member.city}
+                        </div>
+                      )}
+                      
+                      {member.gotra && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <span className="text-gray-400 mr-1">🏛️</span>
+                          Gotra: {member.gotra}
+                        </div>
+                      )}
                       
                       {member.businessName && (
                         <div className="flex items-center text-sm text-gray-600">
@@ -259,26 +299,33 @@ export default function MemberDirectory() {
                         </div>
                       )}
                       
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Phone className="h-4 w-4 mr-1 text-gray-400" />
-                        {member.phonePrimary}
-                      </div>
+                      {(member.user.phone || member.phonePrimary) && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="h-4 w-4 mr-1 text-gray-400" />
+                          {member.user.phone || member.phonePrimary}
+                        </div>
+                      )}
                       
-                      {member.email && (
+                      {member.user.email && (
                         <div className="flex items-center text-sm text-gray-600">
                           <Mail className="h-4 w-4 mr-1 text-gray-400" />
-                          {member.email}
+                          {member.user.email}
                         </div>
                       )}
                     </div>
                     
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {member.membershipType.name}
+                        {member.membershipType}
                       </Badge>
                       {member.businessCategory && (
                         <Badge variant="outline" className="text-xs">
                           {member.businessCategory}
+                        </Badge>
+                      )}
+                      {member.isApproved && (
+                        <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                          Approved
                         </Badge>
                       )}
                     </div>

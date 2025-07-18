@@ -17,9 +17,12 @@ export async function GET(
     const member = await prisma.member.findUnique({
       where: { id: parseInt(params.id) },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true,
+            phone: true,
+            role: true
           }
         }
       }
@@ -60,9 +63,12 @@ export async function PATCH(
         ...(data.dob && { dob: new Date(data.dob) })
       },
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true,
+            phone: true,
+            role: true
           }
         }
       }

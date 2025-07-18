@@ -13,16 +13,18 @@ export async function GET() {
 
     const members = await prisma.member.findMany({
       include: {
-        membershipType: {
+        user: {
           select: {
-            name: true
+            name: true,
+            email: true,
+            phone: true,
+            role: true
           }
         }
       },
       orderBy: [
         { isActive: 'desc' },
-        { firstName: 'asc' },
-        { lastName: 'asc' }
+        { user: { name: 'asc' } }
       ]
     })
 
@@ -48,11 +50,12 @@ export async function POST(request: Request) {
     
     const member = await prisma.member.create({
       data: {
+        userId: data.userId, // This should be provided or created
         firstName: data.firstName,
         lastName: data.lastName,
         fatherName: data.fatherName,
         nativePlace: data.nativePlace,
-        dob: new Date(data.dob),
+        dob: data.dob ? new Date(data.dob) : null,
         gender: data.gender,
         address: data.address,
         city: data.city,
@@ -62,15 +65,8 @@ export async function POST(request: Request) {
         email: data.email,
         businessName: data.businessName,
         businessCategory: data.businessCategory,
-        membershipTypeId: data.membershipTypeId,
+        membershipType: data.membershipType || "Regular",
         isActive: data.isActive ?? true
-      },
-      include: {
-        membershipType: {
-          select: {
-            name: true
-          }
-        }
       }
     })
 

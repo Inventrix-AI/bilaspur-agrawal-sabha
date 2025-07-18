@@ -25,18 +25,27 @@ import {
 
 interface Member {
   id: number
-  firstName: string
-  lastName: string
+  user: {
+    name: string
+    email: string
+    phone?: string
+    role: string
+  }
+  firstName?: string
+  lastName?: string
   email?: string
-  phonePrimary: string
-  city: string
-  nativePlace: string
+  phonePrimary?: string
+  city?: string
+  locality?: string
+  nativePlace?: string
   businessName?: string
   businessCategory?: string
+  gotra?: string
+  profileImageUrl?: string
+  membershipType: string
+  status: string
+  isApproved: boolean
   isActive: boolean
-  membershipType: {
-    name: string
-  }
   createdAt: string
 }
 
@@ -45,6 +54,7 @@ export default function AdminMembersPage() {
   const [filteredMembers, setFilteredMembers] = useState<Member[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
   const [loading, setLoading] = useState(true)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -55,7 +65,7 @@ export default function AdminMembersPage() {
 
   useEffect(() => {
     filterMembers()
-  }, [members, searchTerm, filterType])
+  }, [members, searchTerm, filterType, statusFilter])
 
   const fetchMembers = async () => {
     try {
@@ -76,15 +86,28 @@ export default function AdminMembersPage() {
 
     if (searchTerm) {
       filtered = filtered.filter(member =>
-        `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.phonePrimary.includes(searchTerm) ||
-        member.city.toLowerCase().includes(searchTerm.toLowerCase())
+        member.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.user.phone?.includes(searchTerm) ||
+        member.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.businessName?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     if (filterType) {
-      filtered = filtered.filter(member => member.membershipType.name === filterType)
+      filtered = filtered.filter(member => member.membershipType === filterType)
+    }
+
+    if (statusFilter) {
+      if (statusFilter === "pending") {
+        filtered = filtered.filter(member => !member.isApproved)
+      } else if (statusFilter === "approved") {
+        filtered = filtered.filter(member => member.isApproved)
+      } else if (statusFilter === "active") {
+        filtered = filtered.filter(member => member.isActive)
+      } else if (statusFilter === "inactive") {
+        filtered = filtered.filter(member => !member.isActive)
+      }
     }
 
     setFilteredMembers(filtered)
@@ -105,6 +128,60 @@ export default function AdminMembersPage() {
       }
     } catch (error) {
       console.error('Error updating member status:', error)
+    }
+  }
+
+  const handleApproval = async (memberId: number, isApproved: boolean) => {
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isApproved }),
+      })
+
+      if (response.ok) {
+        fetchMembers()
+      }
+    } catch (error) {
+      console.error('Error updating member approval:', error)
+    }
+  }
+
+  const handleRoleChange = async (memberId: number, role: string) => {
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}/role`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ role }),
+      })
+
+      if (response.ok) {
+        fetchMembers()
+      }
+    } catch (error) {
+      console.error('Error updating member role:', error)
+    }
+  }
+
+  const handleMembershipTypeChange = async (memberId: number, membershipType: string) => {
+    try {
+      const response = await fetch(`/api/admin/members/${memberId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ membershipType }),
+      })
+
+      if (response.ok) {
+        fetchMembers()
+      }
+    } catch (error) {
+      console.error('Error updating membership type:', error)
     }
   }
 
@@ -147,29 +224,35 @@ export default function AdminMembersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{members.filter(m => m.isActive).length}</div>
+            <div className="text-2xl font-bold text-orange-600">{members.filter(m => !m.isApproved).length}</div>
+            <p className="text-sm text-gray-600">Pending Approval</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">{members.filter(m => m.isApproved && m.isActive).length}</div>
             <p className="text-sm text-gray-600">Active Members</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-red-600">{members.filter(m => !m.isActive).length}</div>
-            <p className="text-sm text-gray-600">Inactive Members</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{members.filter(m => m.membershipType.name === 'Lifetime').length}</div>
+            <div className="text-2xl font-bold text-blue-600">{members.filter(m => m.membershipType === 'Lifetime').length}</div>
             <p className="text-sm text-gray-600">Lifetime Members</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">{members.filter(m => m.membershipType.name === 'Patron').length}</div>
+            <div className="text-2xl font-bold text-purple-600">{members.filter(m => m.membershipType === 'Patron').length}</div>
             <p className="text-sm text-gray-600">Patron Members</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-gray-600">{members.filter(m => m.membershipType === '2-Year').length}</div>
+            <p className="text-sm text-gray-600">2-Year Members</p>
           </CardContent>
         </Card>
       </div>
@@ -191,11 +274,25 @@ export default function AdminMembersPage() {
             </div>
             <div className="w-full md:w-48">
               <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">All Status</option>
+                <option value="pending">Pending Approval</option>
+                <option value="approved">Approved</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="w-full md:w-48">
+              <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
               >
                 <option value="">All Membership Types</option>
+                <option value="Regular">Regular</option>
                 <option value="Patron">Patron</option>
                 <option value="Lifetime">Lifetime</option>
                 <option value="2-Year">2-Year</option>
@@ -221,6 +318,8 @@ export default function AdminMembersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Location</TableHead>
+                  <TableHead>Business</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead>Membership</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -230,70 +329,120 @@ export default function AdminMembersPage() {
                 {filteredMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell>
-                      <div>
-                        <div className="font-medium text-gray-900">
-                          {member.firstName} {member.lastName}
-                        </div>
-                        {member.businessName && (
-                          <div className="text-sm text-gray-500">{member.businessName}</div>
+                      <div className="flex items-center space-x-3">
+                        {member.profileImageUrl ? (
+                          <img
+                            className="h-10 w-10 rounded-full object-cover"
+                            src={member.profileImageUrl}
+                            alt={member.user.name}
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-orange-600">
+                              {member.user.name.charAt(0)}
+                            </span>
+                          </div>
                         )}
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {member.user.name}
+                          </div>
+                          {member.gotra && (
+                            <div className="text-sm text-gray-500">Gotra: {member.gotra}</div>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{member.phonePrimary}</div>
-                        {member.email && (
-                          <div className="text-gray-500">{member.email}</div>
-                        )}
+                        <div>{member.user.phone || member.phonePrimary}</div>
+                        <div className="text-gray-500">{member.user.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
                         <div>{member.city}</div>
-                        <div className="text-gray-500">{member.nativePlace}</div>
+                        {member.locality && <div className="text-gray-500">{member.locality}</div>}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {member.membershipType.name}
-                      </Badge>
+                      <div className="text-sm">
+                        <div>{member.businessName || 'N/A'}</div>
+                        {member.businessCategory && (
+                          <div className="text-gray-500">{member.businessCategory}</div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={member.isActive ? "default" : "secondary"}>
-                        {member.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <select
+                        value={member.user.role}
+                        onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="Member">Member</option>
+                        <option value="Committee Admin">Committee Admin</option>
+                        <option value="Super Admin">Super Admin</option>
+                      </select>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-2">
+                      <select
+                        value={member.membershipType}
+                        onChange={(e) => handleMembershipTypeChange(member.id, e.target.value)}
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                      >
+                        <option value="Regular">Regular</option>
+                        <option value="Patron">Patron</option>
+                        <option value="Lifetime">Lifetime</option>
+                        <option value="2-Year">2-Year</option>
+                      </select>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col space-y-1">
+                        <Badge variant={member.isApproved ? "default" : "destructive"} className="text-xs">
+                          {member.isApproved ? "Approved" : "Pending"}
+                        </Badge>
+                        <Badge variant={member.isActive ? "default" : "secondary"} className="text-xs">
+                          {member.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        {!member.isApproved && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleApproval(member.id, true)}
+                            className="text-green-600 text-xs px-2"
+                          >
+                            Approve
+                          </Button>
+                        )}
+                        {member.isApproved && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleApproval(member.id, false)}
+                            className="text-orange-600 text-xs px-2"
+                          >
+                            Unapprove
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => setSelectedMember(member)}
+                          className="text-xs px-2"
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {/* TODO: Edit functionality */}}
-                        >
-                          <Edit className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleToggleStatus(member.id, member.isActive)}
-                          className={member.isActive ? "text-red-600" : "text-green-600"}
+                          className={`text-xs px-2 ${member.isActive ? "text-red-600" : "text-green-600"}`}
                         >
                           {member.isActive ? "Deactivate" : "Activate"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteMember(member.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

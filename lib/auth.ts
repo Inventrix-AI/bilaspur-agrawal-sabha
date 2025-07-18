@@ -23,7 +23,6 @@ export const authOptions: NextAuthOptions = {
             email: credentials.email
           },
           include: {
-            role: true,
             member: true
           }
         })
@@ -45,8 +44,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role.name,
-          memberId: user.memberId
+          role: user.role,
+          memberId: user.member?.id
         }
       }
     })
