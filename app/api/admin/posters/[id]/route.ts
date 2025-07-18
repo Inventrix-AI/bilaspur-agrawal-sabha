@@ -3,18 +3,26 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+// Next.js 15 requires params to be a Promise
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
+    // Must await params in Next.js 15
+    const { id } = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session?.user || (session.user.role !== 'Super Admin' && session.user.role !== 'Committee Admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const posterId = parseInt(params.id)
+    const posterId = parseInt(id)
     const data = await request.json()
 
     const poster = await prisma.poster.update({
@@ -41,16 +49,19 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteParams
 ) {
   try {
+    // Must await params in Next.js 15
+    const { id } = await params
+    
     const session = await getServerSession(authOptions)
     
     if (!session?.user || (session.user.role !== 'Super Admin' && session.user.role !== 'Committee Admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const posterId = parseInt(params.id)
+    const posterId = parseInt(id)
 
     await prisma.poster.delete({
       where: { id: posterId }
