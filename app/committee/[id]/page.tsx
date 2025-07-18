@@ -1,36 +1,38 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Calendar, Users, User, Phone, Mail } from "lucide-react"
+import { Users, Calendar, ArrowLeft, Mail, Phone, MapPin } from "lucide-react"
 import { prisma } from "@/lib/prisma"
+
+// Next.js 15 requires params to be a Promise for page components too
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
 async function getCommittee(id: string) {
   try {
-    const committee = await prisma.committee.findUnique({
+    return await prisma.committee.findUnique({
       where: { id: parseInt(id) },
       include: {
         committeeMembers: {
           include: {
             member: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                city: true,
-                phonePrimary: true,
-                email: true,
-                profileImageUrl: true,
-                businessName: true
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                    phone: true
+                  }
+                }
               }
             }
           },
-          orderBy: [
-            { designation: 'asc' },
-            { member: { firstName: 'asc' } }
-          ]
+          orderBy: {
+            createdAt: 'asc'
+          }
         }
       }
     })
-    return committee
   } catch (error) {
     console.error('Error fetching committee:', error)
     return null
@@ -38,56 +40,53 @@ async function getCommittee(id: string) {
 }
 
 function MemberCard({ committeeMember }: { committeeMember: any }) {
-  const member = committeeMember.member
-
+  const { member, designation } = committeeMember
+  
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start space-x-4">
-        <div className="flex-shrink-0">
-          {member.profileImageUrl ? (
-            <img
-              className="h-16 w-16 rounded-full object-cover"
-              src={member.profileImageUrl}
-              alt={`${member.firstName} ${member.lastName}`}
-            />
-          ) : (
-            <div className="h-16 w-16 rounded-full bg-orange-100 flex items-center justify-center">
-              <User className="h-8 w-8 text-orange-600" />
-            </div>
-          )}
-        </div>
+        {member.profileImageUrl && (
+          <img
+            src={member.profileImageUrl}
+            alt={member.user.name}
+            className="w-16 h-16 rounded-full object-cover"
+          />
+        )}
         
         <div className="flex-1 min-w-0">
-          <div className="mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
-              {member.firstName} {member.lastName}
-            </h3>
-            <p className="text-orange-600 font-medium text-sm">
-              {committeeMember.designation}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 truncate">
+            {member.user.name}
+          </h3>
+          
+          <p className="text-sm font-medium text-orange-600 mb-2">
+            {designation}
+          </p>
           
           <div className="space-y-1 text-sm text-gray-600">
-            <div className="flex items-center">
-              <User className="h-4 w-4 mr-2 text-gray-400" />
-              {member.city}
-            </div>
-            
-            {member.businessName && (
-              <div className="text-gray-600 text-sm">
-                {member.businessName}
+            {member.user.phone && (
+              <div className="flex items-center">
+                <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                {member.user.phone}
               </div>
             )}
             
-            <div className="flex items-center">
-              <Phone className="h-4 w-4 mr-2 text-gray-400" />
-              {member.phonePrimary}
-            </div>
+            {member.city && (
+              <div className="flex items-center">
+                <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                {member.city}
+              </div>
+            )}
             
-            {member.email && (
+            {member.businessName && (
+              <div className="text-gray-600">
+                <strong>Business:</strong> {member.businessName}
+              </div>
+            )}
+            
+            {member.user.email && (
               <div className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                {member.email}
+                {member.user.email}
               </div>
             )}
           </div>
@@ -97,8 +96,10 @@ function MemberCard({ committeeMember }: { committeeMember: any }) {
   )
 }
 
-export default async function CommitteeDetailPage({ params }: { params: { id: string } }) {
-  const committee = await getCommittee(params.id)
+export default async function CommitteeDetailPage({ params }: PageProps) {
+  // Must await params in Next.js 15
+  const { id } = await params
+  const committee = await getCommittee(id)
 
   if (!committee) {
     notFound()
