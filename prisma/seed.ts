@@ -5,10 +5,14 @@ const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Starting database seeding...')
+  console.log('🔗 Database URL:', process.env.DATABASE_URL?.replace(/:[^:@]*@/, ':***@'))
 
   // Create a sample super admin user
+  console.log('🔐 Hashing admin password...')
   const hashedPassword = await bcrypt.hash('admin123', 12)
+  console.log('✅ Password hashed successfully')
   
+  console.log('👤 Creating admin user...')
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@bilaspuragrawalsabha.com' },
     update: {},
@@ -22,6 +26,7 @@ async function main() {
       phone: '9876543210'
     }
   })
+  console.log('✅ Admin user created/updated:', adminUser.email)
 
   // Create member profile for admin
   await prisma.member.upsert({
