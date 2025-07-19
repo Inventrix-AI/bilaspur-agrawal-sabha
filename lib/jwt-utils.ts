@@ -13,6 +13,19 @@ export interface AuthResult {
   error?: string
 }
 
+export async function signJWT(payload: JWTPayload): Promise<string> {
+  try {
+    const token = jwt.sign(
+      payload,
+      process.env.NEXTAUTH_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    )
+    return token
+  } catch (error) {
+    throw new Error('Failed to sign JWT token')
+  }
+}
+
 export async function verifyJWT(request: Request): Promise<AuthResult> {
   try {
     const authHeader = request.headers.get('authorization')
