@@ -16,7 +16,7 @@ export async function POST() {
     console.log('✅ Database connected')
     
     // Check if admin user already exists
-    const existingAdmin = await prisma.user.findUnique({
+    let existingAdmin = await prisma.user.findUnique({
       where: { email: 'admin@bilaspuragrawalsabha.com' }
     })
     
@@ -26,14 +26,24 @@ export async function POST() {
       // Test password
       const testPassword = await bcrypt.compare('admin123', existingAdmin.password)
       
+      if (!testPassword) {
+        console.log('🔄 Updating admin password...')
+        const newHashedPassword = await bcrypt.hash('admin123', 12)
+        existingAdmin = await prisma.user.update({
+          where: { email: 'admin@bilaspuragrawalsabha.com' },
+          data: { password: newHashedPassword }
+        })
+        console.log('✅ Admin password updated')
+      }
+      
       return NextResponse.json({
         success: true,
-        message: 'Admin user already exists',
+        message: 'Admin user verified',
         user: {
           id: existingAdmin.id,
           email: existingAdmin.email,
           name: existingAdmin.name,
-          passwordTest: testPassword
+          passwordTest: await bcrypt.compare('admin123', existingAdmin.password)
         }
       })
     }
