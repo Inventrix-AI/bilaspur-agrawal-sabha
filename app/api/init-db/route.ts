@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
+export async function GET() {
+  return POST()
+}
+
 export async function POST() {
   try {
     console.log('🌱 Initializing database via API...')
+    console.log('🔗 Database URL:', process.env.DATABASE_URL?.replace(/:[^:@]*@/, ':***@'))
+    
+    // Test database connection first
+    await prisma.$connect()
+    console.log('✅ Database connected')
     
     // Check if admin user already exists
     const existingAdmin = await prisma.user.findUnique({
@@ -12,13 +21,19 @@ export async function POST() {
     })
     
     if (existingAdmin) {
+      console.log('👤 Admin user already exists')
+      
+      // Test password
+      const testPassword = await bcrypt.compare('admin123', existingAdmin.password)
+      
       return NextResponse.json({
         success: true,
         message: 'Admin user already exists',
         user: {
           id: existingAdmin.id,
           email: existingAdmin.email,
-          name: existingAdmin.name
+          name: existingAdmin.name,
+          passwordTest: testPassword
         }
       })
     }
